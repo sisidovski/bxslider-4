@@ -33,6 +33,8 @@
 		useCSS: true,
 		preloadImages: 'visible',
 		responsive: true,
+    useWide: false,
+    wideSlideClass: 'wide',
 
 		// TOUCH
 		touchEnabled: true,
@@ -60,6 +62,7 @@
 		stopText: 'Stop',
 		autoControlsCombine: false,
 		autoControlsSelector: null,
+    redraw: true,
 		
 		// AUTO
 		auto: false,
@@ -74,6 +77,9 @@
 		maxSlides: 1,
 		moveSlides: 0,
 		slideWidth: 0,
+    wideSlideWidth: 0,
+    viewportHeightMargin: 0,
+
 		
 		// CALLBACKS
 		onSliderLoad: function() {},
@@ -221,7 +227,14 @@
 				position: 'relative'
 			});
 			// apply the calculated width after the float is applied to prevent scrollbar interference
-			slider.children.css('width', getSlideWidth());
+      if (slider.settings.useWide) {
+        slider.children.each(function(i, item) {
+          var slideWidth = ($(item).hasClass(slider.settings.wideSlideClass))? getWideSlideWidth() : getSlideWidth();
+          $(item).css('width', slideWidth);
+        });
+      } else {
+			  slider.children.css('width', getSlideWidth());
+      }
 			// if slideMargin is supplied, add the css
 			if(slider.settings.mode == 'horizontal' && slider.settings.slideMargin > 0) slider.children.css('marginRight', slider.settings.slideMargin);
 			if(slider.settings.mode == 'vertical' && slider.settings.slideMargin > 0) slider.children.css('marginBottom', slider.settings.slideMargin);
@@ -407,6 +420,14 @@
 			}
 			return newElWidth;
 		}
+
+    /**
+     * Returns the wide width to be applied to each slide
+     */
+    var getWideSlideWidth = function() {
+      var newElWidth = slider.settings.wideSlideWidth;
+      return newElWidth;
+    }
 		
 		/**
 		 * Returns the number of slides currently visible in the viewport (includes partially visible slides)
@@ -1074,7 +1095,9 @@
 				windowWidth = windowWidthNew;
 				windowHeight = windowHeightNew;
 				// update all dynamic elements
-				el.redrawSlider();
+        if (slider.settings.redraw) {
+				  el.redrawSlider();
+        }
 			}
 		}
 		
@@ -1259,6 +1282,15 @@
 		el.redrawSlider = function(){
 			// resize all children in ratio to new screen size
 			slider.children.add(el.find('.bx-clone')).outerWidth(getSlideWidth());
+      if (slider.settings.useWide) {
+        var wideSlideWidth = getWideSlideWidth();
+        slider.children.each(function(i, item) {
+          if ($(item).hasClass(slider.settings.wideSlideClass)) {
+            $(item).outerWidth(wideSlideWidth);
+          }
+        });
+        el.find('.bx-clone'+slider.settings.wideSlideClass).outerWidth(wideSlideWidth);
+      }
 			// adjust the height
 			slider.viewport.css('height', getViewportHeight());
 			// update the slide position
